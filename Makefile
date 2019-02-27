@@ -89,4 +89,7 @@ sdl: FORCE
 vc: FORCE
 	@$(MAKE) -s -f Makefile.vc
 
+retrogame: FORCE
+	@$(MAKE) -s -f Makefile.retrogame
+
 FORCE:
