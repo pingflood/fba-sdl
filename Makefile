@@ -72,21 +72,21 @@ INCLUDE_LIB_PNGH = 1
 #
 
 mingw345: FORCE
-	@$(MAKE) -s -f makefile.mingw GCC345=1
+	@$(MAKE) -s -f Makefile.mingw GCC345=1
 
 mingw452: FORCE
-	@$(MAKE) -s -f makefile.mingw GCC452=1
+	@$(MAKE) -s -f Makefile.mingw GCC452=1
 	
 mingw471: FORCE
-	@$(MAKE) -s -f makefile.mingw GCC471=1
+	@$(MAKE) -s -f Makefile.mingw GCC471=1
 
 mamemingw: FORCE
-	@$(MAKE) -s -f makefile.mamemingw 
+	@$(MAKE) -s -f Makefile.mamemingw 
 
 sdl: FORCE
-	@$(MAKE) -s -f makefile.sdl
+	@$(MAKE) -s -f Makefile.sdl
 
 vc: FORCE
-	@$(MAKE) -s -f makefile.vc
+	@$(MAKE) -s -f Makefile.vc
 
 FORCE:
