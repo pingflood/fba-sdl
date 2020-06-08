@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=FBA GCW0
+Comment=FinalBurnAdvance Emulator
+Exec=fbasdl.dge
+Icon=fbasdl
+Categories=emulators;
+X-OD-Manual=fbasdl.man.txt
+X-OD-Selector=/home/retrofw/roms
+X-OD-Filter=.zip
+X-OD-Alias=aliases.txt
+Terminal=false
+Type=Application
+StartupNotify=true

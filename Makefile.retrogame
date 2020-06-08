@@ -1,4 +1,9 @@
-# CHAINPREFIX := /opt/rs97-toolchain-musl
+#
+# FBA-GCW0 for the RetroFW
+#
+# by pingflood; 2019
+#
+
 CHAINPREFIX := /opt/mipsel-linux-uclibc
 CROSS_COMPILE := $(CHAINPREFIX)/usr/bin/mipsel-linux-
 
@@ -46,7 +51,7 @@ USE_LIBAO = 1
 #	Specify paths/files
 #
 
-objdir	= obj/dingux/
+objdir	= /tmp/fbasdl/obj/dingux/
 srcdir	= src/
 
 alldir	= burn \
@@ -193,7 +198,7 @@ drvobj	+= \
 		#d_sg1000.o
 
 ifdef USE_LIBAO
-	depobj = ao_audio.o 
+	depobj = ao_audio.o
 endif
 
 depobj += \
@@ -379,7 +384,7 @@ endif
 
 CFLAGS += $(DEF) $(incdir)
 CXXFLAGS += $(DEF) $(incdir)
-LDFLAGS +=
+# LDFLAGS +=
 ASFLAGS = -I$(incdir) -O1 -G0
 
 #
@@ -408,11 +413,11 @@ ifeq ($(MAKELEVEL),0)
 ifdef DEPEND
 
 all:	init $(autdep) $(autobj)
-	@$(MAKE) -f Makefile.retrogame
+	@$(MAKE) -f Makefile
 else
 
 all:	init $(autobj)
-	@$(MAKE) -f Makefile.retrogame
+	@$(MAKE) -f Makefile
 endif
 else
 
@@ -431,10 +436,9 @@ ifeq ($(MAKELEVEL),1)
 $(NAME):	$(allobj)
 	@echo
 	@echo Linking executable $(NAME)...
-	@mkdir -p bin
-	@$(LD) $(CFLAGS) $(LDFLAGS) -o bin/$@ $^ $(lib)
-	@mkdir -p bin/skin
-	@cp src/sdl-dingux/skin/*.png bin/skin/
+	@mkdir -p fbasdl/skin
+	@$(LD) $(CFLAGS) $(LDFLAGS) -o fbasdl/$@ $^ $(lib)
+	@cp src/sdl-dingux/skin/*.png fbasdl/skin/
 endif
 
 ipk: all
@@ -484,7 +488,7 @@ $(a68k.o):	fba_make68k.c
 	$(objdir)dep/generated/fba_make68k $(@:.o=.s) $(@D)/a68ktbl.inc
 	@echo Assembling A68K MC68000 core...
 	@$(CC) $(CFLAGS) -c -o $@ $(@:.o=.s)
-	#@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
+	@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
 endif
 
 # Musashi
@@ -597,8 +601,9 @@ ifeq ($(MAKELEVEL),0)
 
 %.o:	%.s
 	@echo Assembling $<...
-	#@$(AS) $(ASFLAGS) $< -o $(subst $(srcdir),$(objdir),$(<D))/$(@F)
-	@$(CC) $(CFLAGS) -mabicalls -c -o $(subst $(srcdir),$(objdir),$(<D))/$(@F) $<
+	@$(AS) $(ASFLAGS) $< -o $(subst $(srcdir),$(objdir),$(<D))/$(@F)
+	@$(CC) $(CFLAGS) -c -o $(subst $(srcdir),$(objdir),$(<D))/$(@F) $<
+	# @$(CC) $(CFLAGS) -mabicalls -c -o $(subst $(srcdir),$(objdir),$(<D))/$(@F) $<
 
 else
 
@@ -608,8 +613,9 @@ else
 
 %.o:	%.s
 	@echo Assembling $<...
-	#$(AS) $(ASFLAGS) $< -o $@
-	@$(CC) $(CFLAGS) -mabicalls -c -o $@ $<
+	$(AS) $(ASFLAGS) $< -o $@
+	@$(CC) $(CFLAGS) -c -o $@ $<
+	# @$(CC) $(CFLAGS) -mabicalls -c -o $@ $<
 
 %.o:
 	@echo Compiling $<...
@@ -656,6 +662,22 @@ cleandep:
 	@echo Removing depend files from $(objdir)...
 	@for dir in $(alldir); do rm -f $(objdir)$$dir/*.d; done
 
+#
+#	Rule to force recompilation of any target that depends on it
+#
+
+FORCE:
+
+opk: all
+	@mksquashfs \
+	fbasdl/default.retrofw.desktop \
+	fbasdl/skin \
+	fbasdl/fbasdl.dge \
+	fbasdl/fbasdl.png \
+	fbasdl/aliases.txt \
+	fbasdl/fbasdl.opk \
+	-all-root -noappend -no-exports -no-xattrs
+
 clean:
 	@echo Removing all files from $(objdir)...
 	@rm -f -r $(objdir)
@@ -666,10 +688,4 @@ ifdef	PERL
 	@rm -f -r $(driverlist)
 endif
 	@echo Removing executable file...
-	@rm -f bin/$(NAME)
-
-#
-#	Rule to force recompilation of any target that depends on it
-#
-
-FORCE:
+	@rm -f fbasdl/$(NAME)
