@@ -1,4 +1,3 @@
-bin
 .old
 obj
 src/cpu/a68k/mips32r1/*.txt
@@ -17,3 +16,4 @@ src/dep/generated/*
 fbasdl.ini
 gamelist.txt
 TODO.txt
+*.ipk

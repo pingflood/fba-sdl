@@ -1,0 +1,7 @@
+title=FBA GCW0
+description=FinalBurnAdvance Emulator
+exec=/home/retrofw/emus/fbasdl/fbasdl.dge
+selectordir=/home/retrofw/roms/fba
+selectorfilter=.zip
+selectoraliases=/home/retrofw/emus/fbasdl/aliases.txt
+clock=600

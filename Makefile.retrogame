@@ -437,6 +437,19 @@ $(NAME):	$(allobj)
 	@cp src/sdl-dingux/skin/*.png bin/skin/
 endif
 
+ipk: all
+	@rm -rf /tmp/.fbasdl-ipk/ && mkdir -p /tmp/.fbasdl-ipk/root/home/retrofw/emus/fbasdl /tmp/.fbasdl-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators /tmp/.fbasdl-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators.systems
+	@cp -r bin/skin bin/fbasdl.dge bin/fbasdl.png bin/aliases.txt /tmp/.fbasdl-ipk/root/home/retrofw/emus/fbasdl
+	@cp bin/fbasdl.lnk /tmp/.fbasdl-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators
+	@cp bin/cps1.fbasdl.lnk bin/cps2.fbasdl.lnk bin/neogeo.fbasdl.lnk /tmp/.fbasdl-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators.systems
+	@sed "s/^Version:.*/Version: $$(date +%Y%m%d)/" bin/control > /tmp/.fbasdl-ipk/control
+	@cp bin/conffiles bin/postinst /tmp/.fbasdl-ipk/
+	@tar --owner=0 --group=0 -czvf /tmp/.fbasdl-ipk/control.tar.gz -C /tmp/.fbasdl-ipk/ control conffiles postinst
+	@tar --owner=0 --group=0 -czvf /tmp/.fbasdl-ipk/data.tar.gz -C /tmp/.fbasdl-ipk/root/ .
+	@echo 2.0 > /tmp/.fbasdl-ipk/debian-binary
+	@ar r bin/fbasdl.ipk /tmp/.fbasdl-ipk/control.tar.gz /tmp/.fbasdl-ipk/data.tar.gz /tmp/.fbasdl-ipk/debian-binary
+
+
 #
 #	Generate the gamelist
 #

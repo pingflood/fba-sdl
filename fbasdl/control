@@ -1,0 +1,10 @@
+Package: fbasdl
+Version: 
+Description: Final Burn Alpha 0.2.97.35 for GCW0
+Section: emus
+Priority: optional
+Maintainer: pingflood
+Architecture: mipsel
+Homepage: https://github.com/pingflood/fbasdl
+Depends:
+Source: https://github.com/pingflood/fbasdl

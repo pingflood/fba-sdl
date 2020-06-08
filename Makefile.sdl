@@ -52,7 +52,7 @@ endif
 #	Specify paths/files
 #
 
-objdir	= obj/GNU_SDL/$(NAME)/
+objdir	= /tmp/fba-sdl/obj/GNU_SDL/$(NAME)/
 srcdir	= src/
 
 alldir	= burn \
