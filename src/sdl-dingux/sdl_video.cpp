@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <SDL/SDL.h>
+#include <sys/stat.h>
 
 #include "burner.h"
 #include "sdl_run.h"
@@ -1817,76 +1818,43 @@ void VideoTrans()
 	if(SDL_MUSTLOCK(screen)) SDL_UnlockSurface(screen);
 }
 
+bool file_exists(char *path) {
+	struct stat s;
+	return (stat(path, &s) == 0 && s.st_mode & S_IFREG); // exists and is file
+}
+
 int VideoInit()
 {
 	// Initialize SDL
 	int flags = (options.vsync ? (SDL_HWSURFACE |
-#ifdef SDL_TRIPLEBUF
+	#ifdef SDL_TRIPLEBUF
 		SDL_TRIPLEBUF
-#else
+	#else
 		SDL_DOUBLEBUF
-#endif
-		) : SDL_SWSURFACE);
+	#endif
+	) : SDL_SWSURFACE);
 
 	if(!(SDL_WasInit(SDL_INIT_VIDEO) & SDL_INIT_VIDEO)) {
 		SDL_InitSubSystem(SDL_INIT_VIDEO);
 	}
 
-#ifdef DEVICE_GCW0
-	int hwscale = options.hwscaling;
+	int hwscale = file_exists("/sys/devices/platform/jz-lcd.0/keep_aspect_ratio") || file_exists("/proc/jz/ipu_ratio"); //options.hwscaling;
 	bool bRotated = options.rotate;
+
 	BurnDrvGetFullSize(&VideoBufferWidth, &VideoBufferHeight);
 	printf("w=%d h=%d\n",VideoBufferWidth, VideoBufferHeight);
 
-	if (hwscale > 0) {
-
-		FILE* aspect_ratio_file = fopen("/sys/devices/platform/jz-lcd.0/keep_aspect_ratio", "w");
-		if (aspect_ratio_file) {
-			if (hwscale == 1) { //Aspect
-				fwrite("1", 1, 1, aspect_ratio_file);
-			} else if (hwscale == 2) { //Fullscreen
-				fwrite("0", 1, 1, aspect_ratio_file);
-			}
-			fclose(aspect_ratio_file);
-		}
-
+	if (hwscale) {
 		if (bRotated) {
 			screen = SDL_SetVideoMode(VideoBufferHeight, VideoBufferWidth, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
 		} else {
 			screen = SDL_SetVideoMode(VideoBufferWidth, VideoBufferHeight, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
 		}
-		
 	} else {
-#endif
 		screen = SDL_SetVideoMode(320, 240, 16, flags);
-#ifdef DEVICE_GCW0		
 	}
-#endif
-	/*{
-		int i = 0; // 0 - 320x240, 1 - 400x240, 2 - 480x272
-		int surfacewidth, surfaceheight;
-		#define NUMOFVIDEOMODES 3
-		struct {
-			int x;
-			int y;
-		} vm[NUMOFVIDEOMODES] = {
-			{320, 240},
-			{400, 240},
-			{480, 272}
-		};
 
-		// check 3 videomodes: 480x272, 400x240, 320x240
-		for(i = NUMOFVIDEOMODES-1; i >= 0; i--) {
-			if(SDL_VideoModeOK(vm[i].x, vm[i].y, 16, SDL_SWSURFACE) != 0) {
-				surfacewidth = vm[i].x;
-				surfaceheight = vm[i].y;
-				break;
-			}
-		}
-		screen = SDL_SetVideoMode(surfacewidth, surfaceheight, 16, SDL_SWSURFACE);
-	}*/
-
-	if(!screen) {
+	if (!screen) {
 		printf("SDL_SetVideoMode screen not initialised.\n");
 	} else {
 		printf("SDL_SetVideoMode successful.\n");
@@ -1901,17 +1869,14 @@ int VideoInit()
 	BurnHighCol = myHighCol16;
 
 	BurnRecalcPal();
-
 	nBurnPitch = VideoBufferWidth * 2;
-
 	PhysicalBufferWidth = screen->w;
 	BurnVideoBuffer = (unsigned short *)malloc(VideoBufferWidth * VideoBufferHeight * 2);
 	memset(BurnVideoBuffer, 0, VideoBufferWidth * VideoBufferHeight * 2);
 
-	bool bVertical = options.rotate && (BurnDrvGetFlags() & BDF_ORIENTATION_VERTICAL);
+	bool bVertical = bRotated && (BurnDrvGetFlags() & BDF_ORIENTATION_VERTICAL);
 
-#ifdef DEVICE_GCW0
-	if (hwscale > 0) {
+	if (hwscale) {
 		if (bVertical) {
 			if (BurnDrvGetFlags() & BDF_ORIENTATION_FLIPPED) {
 				BurnerVideoTrans = Blitrf;
@@ -1930,12 +1895,7 @@ int VideoInit()
 			q_offset = VideoBufferWidth * VideoBufferHeight - 1;
 		}
 	} else {
-#endif
 		BurnerVideoTrans = Blit_320x240_to_320x240; // default blit
-
-		//bool bVertical = options.rotate && (BurnDrvGetFlags() & BDF_ORIENTATION_VERTICAL);
-
-		// if source buffer < screen buffer then set general blitting routine with centering if needed
 		if(!bVertical && VideoBufferWidth <= screen->w && VideoBufferHeight <= screen->h) {
 			if(BurnDrvGetFlags() & BDF_ORIENTATION_FLIPPED)
 				BurnerVideoTrans = Blitf;
@@ -1968,15 +1928,12 @@ int VideoInit()
 			if (bVertical) {
 				p_offset = ((screen->h - VideoBufferWidth)/2)*screen->w;
 				r_offset = screen->w - VideoBufferHeight;
-			}
-			else {
+			} else {
 				p_offset = (screen->w - VideoBufferWidth)/2 + (screen->h - VideoBufferHeight)/2*screen->w;
 				q_offset = VideoBufferWidth*VideoBufferHeight-1;
 			}
 		}
-#ifdef DEVICE_GCW0
 	}
-#endif
 
 	return 0;
 }
